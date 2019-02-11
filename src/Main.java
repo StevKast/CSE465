@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class Main {
 
-	private static int lineNumber;
+	private static int lineNumber = 0;
 	private static HashMap<String, Variable> varStorage;
 
 	public static void main(String[] args) throws FileNotFoundException {
@@ -26,15 +26,22 @@ public class Main {
 		Scanner currentLine = new Scanner(currentLineString);
 
 		while(fileIn.hasNext()) {
+
+			lineNumber++;
+			//System.out.println("Current line number: " + lineNumber);
 			currentLineString = fileIn.nextLine();
 			processStatement(currentLineString);
 
 		}
+		
+		fileIn.close();
+		
 
 
 	} //End main method
 
 
+	//Displays a variable if possible
 	public static void print(Variable var) {
 		if(var != null) {
 			System.out.println(var.toString());
@@ -43,10 +50,13 @@ public class Main {
 		}
 	} //End print method
 
+	//Displays a runtime error with line number
 	private static void errorDisplay() {
 		System.out.println("RUNTIME ERROR: Line " + lineNumber);
 	} //End error method
 
+
+	//Takes in a line of zpm code and interprets it
 	private static void processStatement(String statement) {
 
 		Scanner readStatement = new Scanner(statement);
@@ -61,32 +71,57 @@ public class Main {
 			String varName = statementItems.get(0);
 			String operator = statementItems.get(1);
 			String value = statementItems.get(2);
+			
+			String typeFlag = "";
 
-			Variable newVar = new Variable(value);
+			//Variable newVar = new Variable(value);
+			Variable newVar = null;
+			
+			//If new value is an integer or string or already existing var
+			if(isNumeric(value)) {								//New value is an int
+				
+				typeFlag = "int";
+				newVar = new Variable(Integer.parseInt(value));
+				
+				
+			} else if(value.charAt(0) == '"'){					//New value is a String
+				
+				typeFlag = "string";
+				newVar = new Variable(value);
+
+			} else {											//New value is a var
+
+				if(varStorage.get(value).getType().equals("int")) {
+					typeFlag = "int";
+					newVar = new Variable(varStorage.get(value).getIntValue());
+				} else {
+					typeFlag = "string";
+					newVar = new Variable(varStorage.get(value).getStringValue());
+				}
+				
+			}			
 
 			//Check if variable already exists
-			if(varStorage.containsKey(varName)) {
+			if(varStorage.containsKey(varName)) {				//Variable already exists and needs changed
 
 				Variable tempVar = varStorage.get(varName);
-				
-				System.out.println(tempVar.getType());
 
 				if(operator.equals("=")) {
 
 					varStorage.put(varName, newVar);
 
-				} else{
+				} else {
 					
-					if(varStorage.containsKey(value)) {
-						value = varStorage.get(value).getValue();
+					if(typeFlag.equals("int")) {
+						tempVar.operate(operator, Integer.toString(newVar.getIntValue()));
+					} else {
+						tempVar.operate(operator, newVar.getStringValue());
 					}
-
-					tempVar.operate(operator, value);
-
 				}
+			} else {											//This is a new variable being added
 
-			} else {
-				varStorage.put(varName, newVar);
+					varStorage.put(varName, newVar);
+
 			}
 
 		}
@@ -97,7 +132,17 @@ public class Main {
 			Variable tempVar = varStorage.get(statementItems.get(1));
 			print(tempVar);
 		}
+		
+		if(statementItems.get(0).equals("FOR")) {
+			
+		}
+
+		readStatement.close();
 
 	} //End processStatement
+
+	public static boolean isNumeric(String str){
+		return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+	}
 
 } //End class
