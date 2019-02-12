@@ -10,7 +10,7 @@ public class Main {
 	private static HashMap<String, Variable> varStorage;
 
 	public static void main(String[] args) throws FileNotFoundException {
-		System.out.println("Begin Run!");
+		System.out.println("Start z+- execution:");
 
 		varStorage = new HashMap<String, Variable>();
 		String currentLineString = "";
@@ -35,8 +35,7 @@ public class Main {
 		}
 		
 		fileIn.close();
-		
-
+		currentLine.close();
 
 	} //End main method
 
@@ -94,9 +93,11 @@ public class Main {
 				if(varStorage.get(value).getType().equals("int")) {
 					typeFlag = "int";
 					newVar = new Variable(varStorage.get(value).getIntValue());
-				} else {
+				} else if(varStorage.get(value).getType().equals("string")){
 					typeFlag = "string";
 					newVar = new Variable(varStorage.get(value).getStringValue());
+				} else {
+					errorDisplay();
 				}
 				
 			}			
@@ -115,7 +116,11 @@ public class Main {
 					if(typeFlag.equals("int")) {
 						tempVar.operate(operator, Integer.toString(newVar.getIntValue()));
 					} else {
+						try {
 						tempVar.operate(operator, newVar.getStringValue());
+						} catch (Exception e){
+							errorDisplay();
+						}
 					}
 				}
 			} else {											//This is a new variable being added
@@ -134,12 +139,43 @@ public class Main {
 		}
 		
 		if(statementItems.get(0).equals("FOR")) {
-			System.out.println("For loop detected");
+			processFor(statement);
 		}
 
 		readStatement.close();
 
 	} //End processStatement
+	
+	public static void processFor(String line) {
+		Scanner in = new Scanner(line);
+		
+		ArrayList<String> statementItems = new ArrayList<String>();
+		ArrayList<String> innerLoopCodeLines = new ArrayList<String>();
+
+		while(in.hasNext()) {
+			statementItems.add(in.next());
+		}
+		
+		//Trim loop start and end
+		line = line.substring(5, line.indexOf("ENDFOR"));
+		
+		Scanner innerCode = new Scanner(line);
+		while (innerCode.hasNext()) {
+			innerLoopCodeLines.add(innerCode.findInLine("[^;]*[;]").trim());
+		}
+		
+		for(int i = 0; i < Integer.parseInt(statementItems.get(1)); i++) {
+			
+			for(int j = 0; j < innerLoopCodeLines.size(); j++) {
+				processStatement(innerLoopCodeLines.get(j));
+			}
+		}
+		
+		
+		in.close();
+		innerCode.close();
+	}
+	
 
 	public static boolean isNumeric(String str){
 		return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.

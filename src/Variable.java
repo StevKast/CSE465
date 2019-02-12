@@ -22,6 +22,8 @@ public class Variable {
 
 		if(type.equals("int")) {							//If of type int
 			
+			
+			
 			if(op.equals("+=")) {
 
 				intValue += Integer.parseInt(value);
