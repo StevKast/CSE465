@@ -134,7 +134,7 @@ public class Main {
 		}
 		
 		if(statementItems.get(0).equals("FOR")) {
-			
+			System.out.println("For loop detected");
 		}
 
 		readStatement.close();
